@@ -106,7 +106,6 @@ namespace Lab4IndividualTask
             PhoneDirectory.Add(newRoom);
             ClearFields();
         }
-
         private void ClearFields()
         {
             NewPhoneNumber = string.Empty;
@@ -121,44 +120,129 @@ namespace Lab4IndividualTask
         }
         public void SaveDataToFile()
         {
+            {
+                try
+                {
+                    string filePath = "";
+
+#if WINDOWS
+                    // Получаем путь к рабочему столу для Windows
+                    string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                    string folderPath = Path.Combine(desktopPath, "PhoneDirectory");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    filePath = Path.Combine(folderPath, "rooms.txt");
+
+#elif ANDROID || IOS
+                // Используем AppDataDirectory для Android/iOS
+                string folderPath = FileSystem.AppDataDirectory;
+                filePath = Path.Combine(folderPath, "rooms.txt");
+
+#endif
+
+                    // Преобразуем данные в текст
+                    StringBuilder dataToSave = new StringBuilder();
+                    foreach (var room in PhoneDirectory)
+                    {
+                        dataToSave.AppendLine($"Комната: {room.RoomNumber}, Телефон: {room.PhoneNumber}");
+                        dataToSave.AppendLine("Сотрудники:");
+                        foreach (var employee in room.Employees)
+                        {
+                            dataToSave.AppendLine($"- {employee.Name}");
+                        }
+                        dataToSave.AppendLine();
+                    }
+
+                    // Записываем данные в файл
+                    File.WriteAllText(filePath, dataToSave.ToString());
+
+                    // Уведомляем пользователя об успешном сохранении
+                    App.Current.MainPage.DisplayAlert("Успех", $"Данные успешно сохранены в {filePath}!", "OK");
+                }
+                catch (Exception ex)
+                {
+                    // Выводим сообщение об ошибке
+                    App.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось сохранить данные: {ex.Message}", "OK");
+                }
+            }
+        }
+
+        public void LoadDataFromFile()
+        {
             try
             {
-                // Получаем путь к рабочему столу текущего пользователя
+                string filePath = "";
+
+#if WINDOWS
+                // Путь к рабочему столу на Windows
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-                // Создаем папку на рабочем столе, если она не существует
                 string folderPath = Path.Combine(desktopPath, "PhoneDirectory");
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                }
+                filePath = Path.Combine(folderPath, "rooms.txt");
 
-                // Путь к файлу
-                string filePath = Path.Combine(folderPath, "rooms.txt");
+#elif ANDROID || IOS
+                // Используем AppDataDirectory для Android/iOS
+                string folderPath = FileSystem.AppDataDirectory;
+                filePath = Path.Combine(folderPath, "rooms.txt");
+#endif
 
-                // Преобразуем данные в текстовый формат
-                StringBuilder dataToSave = new StringBuilder();
-                foreach (var room in PhoneDirectory)
+                // Проверяем, существует ли файл
+                if (File.Exists(filePath))
                 {
-                    dataToSave.AppendLine($"Комната: {room.RoomNumber}, Телефон: {room.PhoneNumber}");
-                    dataToSave.AppendLine("Сотрудники:");
-                    foreach (var employee in room.Employees)
+                    // Читаем содержимое файла
+                    var fileContent = File.ReadAllText(filePath);
+                    var lines = fileContent.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+                    // Очищаем текущий список комнат
+                    PhoneDirectory.Clear();
+
+                    // Парсим данные и восстанавливаем комнаты
+                    Room currentRoom = null;
+                    foreach (var line in lines)
                     {
-                        dataToSave.AppendLine($"- {employee.Name}");
+                        if (line.StartsWith("Комната:"))
+                        {
+                            // Если это новая комната, создаем объект Room
+                            if (currentRoom != null)
+                            {
+                                PhoneDirectory.Add(currentRoom);
+                            }
+
+                            currentRoom = new Room();
+                            var roomData = line.Split(", ");
+                            currentRoom.RoomNumber = int.Parse(roomData[0].Split(": ")[1]);
+                            currentRoom.PhoneNumber = int.Parse(roomData[1].Split(": ")[1]);
+                            currentRoom.Employees = new List<Employee>();
+                        }
+                        else if (line.StartsWith("- "))
+                        {
+                            // Добавляем сотрудника в текущую комнату
+                            var employeeName = line.Substring(2); // Удаляем "- " в начале строки
+                            currentRoom?.Employees.Add(new Employee { Name = employeeName });
+                        }
                     }
-                    dataToSave.AppendLine();
+
+                    // Добавляем последнюю комнату (если она не была добавлена)
+                    if (currentRoom != null)
+                    {
+                        PhoneDirectory.Add(currentRoom);
+                    }
+
+                    // Уведомляем пользователя об успешной загрузке
+                    App.Current.MainPage.DisplayAlert("Успех", "Данные успешно загружены!", "OK");
                 }
-
-                // Записываем данные в файл
-                File.WriteAllText(filePath, dataToSave.ToString());
-
-                // Выводим уведомление пользователю
-                App.Current.MainPage.DisplayAlert("Успех", "Данные успешно сохранены!", "OK");
+                else
+                {
+                    // Если файл не найден
+                    App.Current.MainPage.DisplayAlert("Ошибка", "Файл данных не найден", "OK");
+                }
             }
             catch (Exception ex)
             {
-                // Выводим сообщение об ошибке
-                App.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось сохранить данные: {ex.Message}", "OK");
+                App.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось загрузить данные: {ex.Message}", "OK");
             }
         }
     }

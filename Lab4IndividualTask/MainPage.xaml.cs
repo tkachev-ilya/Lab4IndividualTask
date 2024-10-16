@@ -73,10 +73,15 @@
             // Переход на страницу входа администратора
             await Navigation.PushAsync(new AdminLoginPage());
         }
+        
 
         private void OnSaveData(object sender, EventArgs e)
         {
             PhoneDirectoryViewModel.Instance.SaveDataToFile();
+        }
+        private void OnLoadData(object sender, EventArgs e)
+        {
+            PhoneDirectoryViewModel.Instance.LoadDataFromFile();
         }
     }
 }

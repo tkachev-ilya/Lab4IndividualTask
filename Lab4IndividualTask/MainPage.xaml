@@ -18,8 +18,10 @@
 
         <Entry x:Name="LastNameEntry" Placeholder="Введите фамилию" />
         <Button Text="Поиск по фамилии" Clicked="OnLastNameSearchClicked" />
-        <StackLayout Padding="40"></StackLayout>
+        <StackLayout Padding="20"/>
         <Button Text="Сохранить данные" Clicked="OnSaveData"/>
+        <StackLayout Padding="20"/>
+        <Button Text="Загрузить данные" Clicked="OnLoadData"/>
         <StackLayout Padding="50"></StackLayout>
         <Button Text="Вход для администратора"  Clicked="OnAdminLoginClicked" />
     </StackLayout>
