@@ -26,24 +26,24 @@
 
                             <!-- Выводим список сотрудников -->
                             <Label Text="Сотрудники:" FontAttributes="Bold" />
-                            <StackLayout Orientation="Vertical">
-                                <!-- Здесь мы выводим каждого сотрудника -->
-                                <Label Text="{Binding EmployeesString}" />
-                            </StackLayout>
+                            <Label Text="{Binding Employees}" />
                         </StackLayout>
                     </ViewCell>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
-        <!-- Поля для добавления новой комнаты -->
-        <Entry Placeholder="Номер телефона" Text="{Binding NewPhoneNumber}" Keyboard="Numeric" />
-        <Entry Placeholder="Номер помещения" Text="{Binding NewRoomNumber}" Keyboard="Numeric" />
-        <Entry Placeholder="Сотрудники (через запятую)" Text="{Binding NewEmployees}" />
+        <StackLayout Padding="10">
+            <Label Text="Админ панель - добавление комнаты" FontSize="Large" />
 
-        <!-- Кнопка для добавления новой записи -->
-        <Button Text="Добавить комнату" Command="{Binding AddRoomCommand}" />
-        <Button Text="Вернуться на страницу поиска" Clicked="ReturnToMainPage"></Button>
+            <Entry Placeholder="Номер помещения" Text="{Binding NewRoomNumber}" Keyboard="Numeric" />
+            <Entry Placeholder="Номер телефона" Text="{Binding NewPhoneNumber}" Keyboard="Numeric" />
+            <Entry Placeholder="Сотрудники (через запятую)" Text="{Binding NewEmployees}" />
+
+            <Button Text="Сохранить" Command="{Binding SaveRoomCommand}" />
+
+            <Button Text="Вернуться" Clicked="ReturnToMainPage" />
+        </StackLayout>
 
     </StackLayout>
 </ContentPage>
