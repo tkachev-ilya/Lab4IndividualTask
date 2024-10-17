@@ -1,27 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:Lab4IndividualTask"
              x:Class="Lab4IndividualTask.MainPage">
 
-
+    <ContentPage.BindingContext>
+        <local:PhoneDirectoryViewModel />
+    </ContentPage.BindingContext>
     <StackLayout Padding="10">
         <Label Text="Поиск информации" FontSize="Large" />
 
-        <Entry x:Name="PhoneEntry" Placeholder="Введите номер телефона" />
-        <Button Text="Поиск по номеру телефона" Clicked="OnPhoneSearchClicked" />
-        <Picker Title="Выберите комнату"
-                x:Name="RoomEntry"
-                ItemsSource="{Binding PhoneDirectory}" 
-                ItemDisplayBinding="{Binding RoomNumber}"
-                SelectedItem="{Binding SelectedRoom}" />
-        <Button Text="Поиск по номеру помещения" Clicked="OnRoomSearchClicked" />
-
-        <Entry x:Name="LastNameEntry" Placeholder="Введите фамилию" />
-        <Button Text="Поиск по фамилии" Clicked="OnLastNameSearchClicked" />
-        <StackLayout Padding="20"/>
-        <Button Text="Сохранить данные" Clicked="OnSaveData"/>
-        <StackLayout Padding="20"/>
-        <Button Text="Загрузить данные" Clicked="OnLoadData"/>
+        <Entry Text="{Binding PhoneEntry}" Placeholder="Введите номер телефона" />
+        <Button Text="Поиск по номеру телефона"  Command="{Binding SearchByPhoneCommand}"/>
+        <Entry Text="{Binding RoomEntry}" Placeholder="Введите номер комнаты" />
+        <Button Text="Поиск по номеру помещения" Command="{Binding SearchByRoomCommand}" />
+        <Entry Text="{Binding LastNameEntry}" Placeholder="Введите фамилию" />
+        <Button Text="Поиск по фамилии"  Command="{Binding SearchByLastNameCommand}"/>
+        
+        <StackLayout Padding="40"/>
         <StackLayout Padding="50"></StackLayout>
         <Button Text="Вход для администратора"  Clicked="OnAdminLoginClicked" />
     </StackLayout>

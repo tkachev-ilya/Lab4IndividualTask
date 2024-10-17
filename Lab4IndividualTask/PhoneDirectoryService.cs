@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
 namespace Lab4IndividualTask
@@ -9,11 +9,11 @@ namespace Lab4IndividualTask
     {
         private static PhoneDirectoryViewModel _instance;
         private static readonly object _lock = new object();
+
         public static PhoneDirectoryViewModel Instance
         {
             get
             {
-                // Используем блокировку для многопоточной безопасности
                 lock (_lock)
                 {
                     if (_instance == null)
@@ -24,29 +24,7 @@ namespace Lab4IndividualTask
                 }
             }
         }
-        private Room _selectedRoom;
-        public Room SelectedRoom
-        {
-            get => _selectedRoom;
-            set
-            {
-                _selectedRoom = value;
-                OnPropertyChanged(nameof(SelectedRoom));
-            }
-        }
-        public ObservableCollection<Room> PhoneDirectory { get; set; }
-        public ICommand AddRoomCommand { get; }
-
-        private string _newPhoneNumber;
-        public string NewPhoneNumber
-        {
-            get => _newPhoneNumber;
-            set
-            {
-                _newPhoneNumber = value;
-                OnPropertyChanged(nameof(NewPhoneNumber));
-            }
-        }
+        public ICommand SaveRoomCommand { get; }
 
         private string _newRoomNumber;
         public string NewRoomNumber
@@ -55,7 +33,18 @@ namespace Lab4IndividualTask
             set
             {
                 _newRoomNumber = value;
-                OnPropertyChanged(nameof(NewRoomNumber));
+                OnPropertyChanged();
+            }
+        }
+
+        private string _newPhoneNumber;
+        public string NewPhoneNumber
+        {
+            get => _newPhoneNumber;
+            set
+            {
+                _newPhoneNumber = value;
+                OnPropertyChanged();
             }
         }
 
@@ -66,184 +55,192 @@ namespace Lab4IndividualTask
             set
             {
                 _newEmployees = value;
-                OnPropertyChanged(nameof(NewEmployees));
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand SearchByPhoneCommand { get; }
+        public ICommand SearchByRoomCommand { get; }
+        public ICommand SearchByLastNameCommand { get; }
+
+        private string _searchResult;
+        public string SearchResult
+        {
+            get => _searchResult;
+            set
+            {
+                _searchResult = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _phoneEntry;
+        public string PhoneEntry
+        {
+            get => _phoneEntry;
+            set
+            {
+                _phoneEntry = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _roomEntry;
+        public string RoomEntry
+        {
+            get => _roomEntry;
+            set
+            {
+                _roomEntry = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _lastNameEntry;
+        public string LastNameEntry
+        {
+            get => _lastNameEntry;
+            set
+            {
+                _lastNameEntry = value;
+                OnPropertyChanged();
             }
         }
 
         public PhoneDirectoryViewModel()
         {
-            PhoneDirectory = new ObservableCollection<Room>
-            {
-                new Room { PhoneNumber = 12, RoomNumber = 101, Employees = new List<Employee> { new Employee { Name = "Иванов" }, new Employee { Name = "Петров" } } },
-                new Room { PhoneNumber = 34, RoomNumber = 102, Employees = new List<Employee> { new Employee { Name = "Сидоров" } } }
-            };
-
-            AddRoomCommand = new Command(AddRoom);
+            // Инициализация команд
+            SearchByPhoneCommand = new Command(async () => await SearchByPhoneAsync());
+            SearchByRoomCommand = new Command(async () => await SearchByRoomAsync());
+            SearchByLastNameCommand = new Command(async () => await SearchByLastNameAsync());
+            SaveRoomCommand = new Command(async () => await SaveRoomAsync());
         }
 
-        private void AddRoom()
-        {
-            // Разделяем строку сотрудников
-            var employeesList = NewEmployees.Split(',')
-                .Select(name => new Employee { Name = name.Trim() })
-                .ToList();
-
-            // Проверяем, что количество сотрудников не превышает 4
-            if (employeesList.Count > 4)
+        private async Task SearchByPhoneAsync()
+{
+            if (int.TryParse(PhoneEntry, out int phoneNumber))
             {
-                // Выдаем предупреждение, что максимум 4 сотрудника
-                App.Current.MainPage.DisplayAlert("Ошибка", "Максимум 4 сотрудника могут быть в одной комнате.", "OK");
-                return;
-            }
+                // Ищем комнату по номеру телефона
+                var room = await DatabaseService.GetRoomByPhoneAsync(phoneNumber);
 
-            var newRoom = new Room
-            {
-                PhoneNumber = int.Parse(NewPhoneNumber),
-                RoomNumber = int.Parse(NewRoomNumber),
-                Employees = NewEmployees.Split(',').Select(name => new Employee { Name = name.Trim() }).ToList()
-            };
-
-            PhoneDirectory.Add(newRoom);
-            ClearFields();
-        }
-        private void ClearFields()
-        {
-            NewPhoneNumber = string.Empty;
-            NewRoomNumber = string.Empty;
-            NewEmployees = string.Empty;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        public void SaveDataToFile()
-        {
-            {
-                try
+                // Если комната найдена, показываем диалог с данными
+                if (room != null)
                 {
-                    string filePath = "";
-
-#if WINDOWS
-                    // Получаем путь к рабочему столу для Windows
-                    string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                    string folderPath = Path.Combine(desktopPath, "PhoneDirectory");
-
-                    if (!Directory.Exists(folderPath))
-                    {
-                        Directory.CreateDirectory(folderPath);
-                    }
-
-                    filePath = Path.Combine(folderPath, "rooms.txt");
-
-#elif ANDROID || IOS
-                // Используем AppDataDirectory для Android/iOS
-                string folderPath = FileSystem.AppDataDirectory;
-                filePath = Path.Combine(folderPath, "rooms.txt");
-
-#endif
-
-                    // Преобразуем данные в текст
-                    StringBuilder dataToSave = new StringBuilder();
-                    foreach (var room in PhoneDirectory)
-                    {
-                        dataToSave.AppendLine($"Комната: {room.RoomNumber}, Телефон: {room.PhoneNumber}");
-                        dataToSave.AppendLine("Сотрудники:");
-                        foreach (var employee in room.Employees)
-                        {
-                            dataToSave.AppendLine($"- {employee.Name}");
-                        }
-                        dataToSave.AppendLine();
-                    }
-
-                    // Записываем данные в файл
-                    File.WriteAllText(filePath, dataToSave.ToString());
-
-                    // Уведомляем пользователя об успешном сохранении
-                    App.Current.MainPage.DisplayAlert("Успех", $"Данные успешно сохранены в {filePath}!", "OK");
-                }
-                catch (Exception ex)
-                {
-                    // Выводим сообщение об ошибке
-                    App.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось сохранить данные: {ex.Message}", "OK");
-                }
-            }
-        }
-
-        public void LoadDataFromFile()
-        {
-            try
-            {
-                string filePath = "";
-
-#if WINDOWS
-                // Путь к рабочему столу на Windows
-                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string folderPath = Path.Combine(desktopPath, "PhoneDirectory");
-                filePath = Path.Combine(folderPath, "rooms.txt");
-
-#elif ANDROID || IOS
-                // Используем AppDataDirectory для Android/iOS
-                string folderPath = FileSystem.AppDataDirectory;
-                filePath = Path.Combine(folderPath, "rooms.txt");
-#endif
-
-                // Проверяем, существует ли файл
-                if (File.Exists(filePath))
-                {
-                    // Читаем содержимое файла
-                    var fileContent = File.ReadAllText(filePath);
-                    var lines = fileContent.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
-                    // Очищаем текущий список комнат
-                    PhoneDirectory.Clear();
-
-                    // Парсим данные и восстанавливаем комнаты
-                    Room currentRoom = null;
-                    foreach (var line in lines)
-                    {
-                        if (line.StartsWith("Комната:"))
-                        {
-                            // Если это новая комната, создаем объект Room
-                            if (currentRoom != null)
-                            {
-                                PhoneDirectory.Add(currentRoom);
-                            }
-
-                            currentRoom = new Room();
-                            var roomData = line.Split(", ");
-                            currentRoom.RoomNumber = int.Parse(roomData[0].Split(": ")[1]);
-                            currentRoom.PhoneNumber = int.Parse(roomData[1].Split(": ")[1]);
-                            currentRoom.Employees = new List<Employee>();
-                        }
-                        else if (line.StartsWith("- "))
-                        {
-                            // Добавляем сотрудника в текущую комнату
-                            var employeeName = line.Substring(2); // Удаляем "- " в начале строки
-                            currentRoom?.Employees.Add(new Employee { Name = employeeName });
-                        }
-                    }
-
-                    // Добавляем последнюю комнату (если она не была добавлена)
-                    if (currentRoom != null)
-                    {
-                        PhoneDirectory.Add(currentRoom);
-                    }
-
-                    // Уведомляем пользователя об успешной загрузке
-                    App.Current.MainPage.DisplayAlert("Успех", "Данные успешно загружены!", "OK");
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Результаты поиска",
+                        $"Номер помещения: {room.RoomNumber}\nСотрудники: {room.Employees}",
+                        "OK");
                 }
                 else
                 {
-                    // Если файл не найден
-                    App.Current.MainPage.DisplayAlert("Ошибка", "Файл данных не найден", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Ошибка", "Номер телефона не найден", "OK");
                 }
             }
-            catch (Exception ex)
+            else
             {
-                App.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось загрузить данные: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Ошибка", "Введите корректный номер телефона", "OK");
             }
+        }
+
+private async Task SearchByRoomAsync()
+{
+            if (int.TryParse(RoomEntry, out int roomNumber))
+            {
+                // Ищем комнату по номеру помещения
+                var room = await DatabaseService.GetRoomByRoomNumberAsync(roomNumber);
+
+                // Если комната найдена, показываем диалог с данными
+                if (room != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Результаты поиска",
+                        $"Номер телефона: {room.PhoneNumber}\nСотрудники: {room.Employees}",
+                        "OK");
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Ошибка", "Номер помещения не найден", "OK");
+                }
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка", "Введите корректный номер помещения", "OK");
+            }
+        }
+
+private async Task SearchByLastNameAsync()
+{
+
+            if (!string.IsNullOrEmpty(LastNameEntry))
+            {
+                // Ищем комнату по фамилии сотрудника
+                var room = await DatabaseService.GetRoomByEmployeeNameAsync(LastNameEntry);
+
+                // Если комната найдена, показываем диалог с данными
+                if (room != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Результаты поиска",
+                        $"Номер помещения: {room.RoomNumber}\nНомер телефона: {room.PhoneNumber}\nСотрудники: {room.Employees}",
+                        "OK");
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Ошибка", "Служащий не найден", "OK");
+                }
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка", "Введите фамилию", "OK");
+            }
+        }
+
+        private ObservableCollection<Room> _phoneDirectory;
+        public ObservableCollection<Room> PhoneDirectory
+        {
+            get => _phoneDirectory;
+            set
+            {
+                _phoneDirectory = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public async Task LoadRoomsAsync()
+        {
+            var rooms = await DatabaseService.RetrieveRoomsAsync();
+            PhoneDirectory = new ObservableCollection<Room>(rooms);
+        }
+        private async Task SaveRoomAsync()
+        {
+            if (int.TryParse(NewRoomNumber, out int roomNumber) && int.TryParse(NewPhoneNumber, out int phoneNumber))
+            {
+                var newRoom = new Room
+                {
+                    RoomNumber = roomNumber,
+                    PhoneNumber = phoneNumber,
+                    Employees = NewEmployees
+                };
+                await DatabaseService.SaveRoom(newRoom);
+                await Application.Current.MainPage.DisplayAlert("Успех", "Комната сохранена", "OK");
+
+                // Очистка полей после сохранения
+                NewRoomNumber = string.Empty;
+                NewPhoneNumber = string.Empty;
+                NewEmployees = string.Empty;
+                await LoadRoomsAsync();
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка", "Введите корректные данные", "OK");
+            }
+        }
+
+        // Реализация INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

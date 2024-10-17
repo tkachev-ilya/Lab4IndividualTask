@@ -1,25 +1,18 @@
+using System.Data.SqlTypes;
+using SQLite;
+
+
 namespace Lab4IndividualTask
 {
+
     public class Room
     {
-        public int PhoneNumber { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
         public int RoomNumber { get; set; }
-        public List<Employee> Employees { get; set; }
+        public int PhoneNumber { get; set; }
 
-        // Вычисляемое свойство для отображения сотрудников в виде строки
-        public string EmployeesString
-        {
-            get
-            {
-                return Employees != null && Employees.Count > 0
-                    ? string.Join(", ", Employees.Select(e => e.Name))
-                    : "Нет сотрудников";
-            }
-        }
-    }
-
-    public class Employee
-    {
-        public string Name { get; set; }
+        // Список сотрудников будет храниться как строка с разделителями
+        public string Employees { get; set; }
     }
 }
