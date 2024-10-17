@@ -9,14 +9,14 @@
         <local:PhoneDirectoryViewModel />
     </ContentPage.BindingContext>
 
-    <StackLayout Padding="20">
+    <StackLayout >
 
         <!-- Список комнат -->
-        <ListView ItemsSource="{Binding PhoneDirectory}">
+        <ListView ItemsSource="{Binding PhoneDirectory}" HasUnevenRows="True" HeightRequest="100" >
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell>
-                        <StackLayout Padding="10">
+                        <StackLayout>
                             <!-- Выводим номер помещения и телефона -->
                             <Label Text="Комната:" FontAttributes="Bold" />
                             <Label Text="{Binding RoomNumber}" />
