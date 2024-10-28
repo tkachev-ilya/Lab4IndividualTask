@@ -17,8 +17,8 @@
         <Entry Text="{Binding LastNameEntry}" Placeholder="Введите фамилию" />
         <Button Text="Поиск по фамилии"  Command="{Binding SearchByLastNameCommand}"/>
         
-        <StackLayout Padding="40"/>
-        <StackLayout Padding="50"></StackLayout>
-        <Button Text="Вход для администратора"  Clicked="OnAdminLoginClicked" />
+        <StackLayout Padding = "40"/>
+        <StackLayout Padding = "50"></StackLayout>
+        <Button Text = "Вход для администратора"  Clicked = "OnAdminLoginClicked" />
     </StackLayout>
 </ContentPage>
