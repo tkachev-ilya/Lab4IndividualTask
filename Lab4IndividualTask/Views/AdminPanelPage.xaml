@@ -12,13 +12,13 @@
     <StackLayout >
 
         <!-- Список комнат -->
-        <ListView ItemsSource="{Binding PhoneDirectory}" HasUnevenRows="True" HeightRequest="100" >
+        <ListView ItemsSource="{Binding PhoneDirectory}" HasUnevenRows="True" HeightRequest="700" >
             <ListView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate >
                     <ViewCell>
                         <StackLayout>
                             <!-- Выводим номер помещения и телефона -->
-                            <Label Text="Комната:" FontAttributes="Bold" />
+                            <Label Text="Комната:" FontAttributes="Bold"/>
                             <Label Text="{Binding RoomNumber}" />
 
                             <Label Text="Телефон:" FontAttributes="Bold" />
@@ -41,7 +41,7 @@
             <Entry Placeholder="Сотрудники (через запятую)" Text="{Binding NewEmployees}" />
 
             <Button Text="Сохранить" Command="{Binding SaveRoomCommand}" />
-
+            <Button Text="Удалить запись" Command="{Binding DeleteRoom}"/>
             <Button Text="Вернуться" Clicked="ReturnToMainPage" />
         </StackLayout>
 

@@ -62,6 +62,7 @@ namespace Lab4IndividualTask
         public ICommand SearchByPhoneCommand { get; }
         public ICommand SearchByRoomCommand { get; }
         public ICommand SearchByLastNameCommand { get; }
+        public ICommand DeleteRoom { get; }
 
         private string _searchResult;
         public string SearchResult
@@ -114,6 +115,7 @@ namespace Lab4IndividualTask
             SearchByRoomCommand = new Command(async () => await SearchByRoomAsync());
             SearchByLastNameCommand = new Command(async () => await SearchByLastNameAsync());
             SaveRoomCommand = new Command(async () => await SaveRoomAsync());
+            DeleteRoom = new Command(async () => await DeleteRoomAsync());
         }
 
         private async Task SearchByPhoneAsync()
@@ -142,8 +144,8 @@ namespace Lab4IndividualTask
             }
         }
 
-private async Task SearchByRoomAsync()
-{
+        private async Task SearchByRoomAsync()
+        {
             if (int.TryParse(RoomEntry, out int roomNumber))
             {
                 // Ищем комнату по номеру помещения
@@ -168,8 +170,8 @@ private async Task SearchByRoomAsync()
             }
         }
 
-private async Task SearchByLastNameAsync()
-{
+        private async Task SearchByLastNameAsync()
+        {
 
             if (!string.IsNullOrEmpty(LastNameEntry))
             {
@@ -225,15 +227,48 @@ private async Task SearchByLastNameAsync()
                 await Application.Current.MainPage.DisplayAlert("Успех", "Комната сохранена", "OK");
 
                 // Очистка полей после сохранения
-                NewRoomNumber = string.Empty;
-                NewPhoneNumber = string.Empty;
-                NewEmployees = string.Empty;
+                ClearStrings();
                 await LoadRoomsAsync();
             }
             else
             {
                 await Application.Current.MainPage.DisplayAlert("Ошибка", "Введите корректные данные", "OK");
             }
+        }
+
+        private async Task DeleteRoomAsync()
+        {
+            if (int.TryParse(NewRoomNumber, out int roomNumber))
+            {
+                // Ищем комнату по номеру помещения
+                var room = await DatabaseService.DeleteRoomAsync(roomNumber);
+
+                // Если комната найдена, показываем диалог с данными
+                if (room != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Результаты",
+                        $"Номер Комнаты: {room}",
+                        "OK");
+                    ClearStrings();
+                    await LoadRoomsAsync();
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Ошибка", "Номер помещения не найден", "OK");
+                }
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка", "Введите корректный номер помещения", "OK");
+            }
+        }
+
+        private void ClearStrings()
+        {
+            NewRoomNumber = string.Empty;
+            NewPhoneNumber = string.Empty;
+            NewEmployees = string.Empty;
         }
 
         // Реализация INotifyPropertyChanged

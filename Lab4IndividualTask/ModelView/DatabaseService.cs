@@ -1,7 +1,4 @@
 ﻿using SQLite;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Lab4IndividualTask
 {
@@ -68,6 +65,21 @@ namespace Lab4IndividualTask
         {
             await Init();
             return await db.Table<Room>().FirstOrDefaultAsync(r => r.Employees.Contains(employeeName));
+        }
+        public static async Task<int> DeleteRoomAsync(int roomNumber)
+        {
+            await Init();  // Инициализация базы данных, если она еще не инициализирована
+
+            // Получаем комнату с указанным номером
+            var roomToDelete = await db.Table<Room>().FirstOrDefaultAsync(r => r.RoomNumber == roomNumber);
+
+            // Если комната найдена, удаляем её
+            if (roomToDelete != null)
+            {
+                return await db.DeleteAsync(roomToDelete);
+            }
+
+            return 0;
         }
     }
 }

@@ -65,10 +65,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="AdminLoginPage.xaml">
+	  <MauiXaml Update="Views\AdminLoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="AdminPanelPage.xaml">
+	  <MauiXaml Update="Views\AdminPanelPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
